@@ -16,7 +16,7 @@ export default function MemoCreate() {
 
   async function generateAiResponse() {
     try {
-      const response = await axios.post("/ai/generate-memo", {
+      const response = await axios.post("/api/ai/generate-memo", {
         message: prompt,
       });
 
