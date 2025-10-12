@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { config, chat } from "../../utils/genai";
 import ChatMessage from "../../components/ChatMessage";
 import ChatForm from "../../components/ChatForm";
+import axios from "axios";
 
 export default function MemoCreate() {
   const [prompt, setPrompt] = useState("");
@@ -16,12 +16,11 @@ export default function MemoCreate() {
 
   async function generateAiResponse() {
     try {
-      const response = await chat.sendMessage({
+      const response = await axios.post("/ai/generate-memo", {
         message: prompt,
-        config: config,
       });
 
-      const parsedData = JSON.parse(response.text);
+      const parsedData = response.data;
       setStructuredData(parsedData);
       if (parsedData.isMemo) {
         setMessages((prev) => [
