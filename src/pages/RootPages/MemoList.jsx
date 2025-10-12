@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Momo from "../../components/Momo";
+import memoAPI from "../../../api/memos";
 
 export default function MemoList() {
   const [memos, setMemos] = useState([]);
@@ -9,30 +10,45 @@ export default function MemoList() {
     loadMemos();
   }, []);
 
-  const loadMemos = () => {
-    const storedMemos = JSON.parse(localStorage.getItem("memos") || "[]");
-    setMemos(storedMemos);
+  const loadMemos = async () => {
+    const result = await memoAPI.getAllMemos();
+
+    if (result.success) {
+      setMemos(result.data);
+    } else {
+      console.error("메모 로드 실패:", result.error);
+      setMemos([]);
+    }
   };
 
-  const deleteMemo = (id) => {
-    const updatedMemos = memos.filter((memo) => memo.id !== id);
+  const deleteMemo = async (id) => {
+    const result = await memoAPI.deleteMemo(id);
 
-    setMemos(updatedMemos);
-
-    localStorage.setItem("memos", JSON.stringify(updatedMemos));
+    if (result.success) {
+      // 로컬 상태에서도 제거
+      const updatedMemos = memos.filter((memo) => memo.id !== id);
+      setMemos(updatedMemos);
+    } else {
+      console.error("메모 삭제 실패:", result.error);
+    }
   };
 
-  const updateMemoCompletion = (id, isCompleted) => {
-    const updatedMemos = memos.map((memo) => {
-      if (memo.id === id) {
-        return { ...memo, isCompleted };
-      }
-      return memo;
-    });
+  const updateMemoCompletion = async (id, isCompleted) => {
+    const result = await memoAPI.updateMemoCompletion(id, isCompleted);
 
-    setMemos(updatedMemos);
+    if (result.success) {
+      // 로컬 상태도 업데이트
+      const updatedMemos = memos.map((memo) => {
+        if (memo.id === id) {
+          return { ...memo, isCompleted };
+        }
+        return memo;
+      });
 
-    localStorage.setItem("memos", JSON.stringify(updatedMemos));
+      setMemos(updatedMemos);
+    } else {
+      console.error("메모 완료 상태 업데이트 실패:", result.error);
+    }
   };
 
   const filteredMemos = useMemo(() => {

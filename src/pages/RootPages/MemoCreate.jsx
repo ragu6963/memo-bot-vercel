@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import ChatMessage from "../../components/ChatMessage";
 import ChatForm from "../../components/ChatForm";
-import axios from "axios";
+import memoAPI from "../../../api/memos";
+import aiAPI from "../../../api/ai";
 
 export default function MemoCreate() {
   const [prompt, setPrompt] = useState("");
@@ -15,13 +16,12 @@ export default function MemoCreate() {
   }, [messages]);
 
   async function generateAiResponse() {
-    try {
-      const response = await axios.post("/api/ai/generate-memo", {
-        message: prompt,
-      });
+    const result = await aiAPI.generateMemo(prompt);
 
-      const parsedData = response.data;
+    if (result.success) {
+      const parsedData = result.data;
       setStructuredData(parsedData);
+
       if (parsedData.isMemo) {
         setMessages((prev) => [
           ...prev,
@@ -40,8 +40,8 @@ export default function MemoCreate() {
           },
         ]);
       }
-    } catch (error) {
-      console.error(error);
+    } else {
+      console.error("AI 응답 생성 실패:", result.error);
       setMessages((prev) => [
         ...prev,
         {
@@ -52,29 +52,30 @@ export default function MemoCreate() {
     }
   }
 
-  function saveToLocalStorage() {
+  async function saveToSupabase() {
     if (!structuredData) return;
 
-    const existingMemos = JSON.parse(localStorage.getItem("memos") || "[]");
-    const newMemo = {
-      id: Date.now().toString(),
-      ...structuredData,
-      createdAt: new Date().toISOString(),
-      isCompleted: false,
-    };
+    const result = await memoAPI.createMemo(structuredData);
 
-    existingMemos.push(newMemo);
-    localStorage.setItem("memos", JSON.stringify(existingMemos));
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "ai",
-        content: "메모가 성공적으로 저장되었습니다!",
-      },
-    ]);
-
-    setStructuredData(null);
+    if (result.success) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: "메모가 성공적으로 저장되었습니다!",
+        },
+      ]);
+      setStructuredData(null);
+    } else {
+      console.error("메모 저장 실패:", result.error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          content: "메모 저장 중 오류가 발생했습니다. 다시 시도해주세요.",
+        },
+      ]);
+    }
   }
 
   function cancelSave() {
@@ -128,7 +129,7 @@ export default function MemoCreate() {
               <ChatMessage
                 key={index}
                 message={message}
-                onSave={saveToLocalStorage}
+                onSave={saveToSupabase}
                 onCancel={cancelSave}
               />
             ))
