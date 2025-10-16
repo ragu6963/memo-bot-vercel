@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
-import { useState } from "react";
-import { signup } from "../../store/authSlice";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { signup, setIsSignup } from "../../store/authSlice";
+import { Link, useNavigate } from "react-router-dom";
 import PATHS from "../../constants/paths";
 
 export default function Signup() {
@@ -9,7 +9,18 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const dispatch = useDispatch();
-  const { error } = useSelector((state) => state.auth);
+  const { error, isSignup } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isSignup) {
+      alert(
+        "회원가입에 성공했습니다. 메일함을 확인해주세요. 로그인 페이지로 이동합니다."
+      );
+      navigate(PATHS.AUTH.LOGIN);
+    }
+  }, [isSignup, navigate]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (password !== passwordConfirm) {
@@ -29,7 +40,7 @@ export default function Signup() {
           <p className="text-sm text-gray-600">새 계정을 만들어보세요</p>
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700">
-              {error.message || "회원가입에 실패했습니다."}
+              {error.msg || "회원가입에 실패했습니다."}
             </div>
           )}
         </div>

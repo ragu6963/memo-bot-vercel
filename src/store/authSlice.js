@@ -60,19 +60,33 @@ const logout = createAsyncThunk(
 const initialState = {
   token: null,
   error: null,
+  isSignup: false,
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    setIsSignup: (state, action) => {
+      state.isSignup = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
+      .addCase(signup.fulfilled, (state) => {
+        state.isSignup = true;
+      })
       .addCase(login.fulfilled, (state, action) => {
         state.token = action.payload["access_token"];
       })
       .addCase(logout.fulfilled, (state) => {
         state.token = null;
+      })
+      .addCase(signup.rejected, (state) => {
+        state.isSignup = false;
       })
       .addMatcher(
         (action) => action.type.endsWith("/pending"),
@@ -91,4 +105,5 @@ const authSlice = createSlice({
 });
 
 export { signup, login, logout };
+export const { clearError, setIsSignup } = authSlice.actions;
 export default authSlice.reducer;

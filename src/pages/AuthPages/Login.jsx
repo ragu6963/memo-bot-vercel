@@ -23,7 +23,7 @@ export default function Login() {
           <p className="text-sm text-gray-600">계정에 로그인하세요</p>
           {error && (
             <div className="mt-4 p-3 bg-red-50 border border-red-200 text-red-700">
-              {error.message || "로그인에 실패했습니다."}
+              {error.msg || "로그인에 실패했습니다."}
             </div>
           )}
         </div>
