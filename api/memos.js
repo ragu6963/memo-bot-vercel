@@ -1,4 +1,5 @@
 import axiosInstance from "../src/api/index.js";
+import { store } from "../src/store/index.js";
 
 // 메모 데이터 변환 함수들
 const supabaseToResponseData = (supabaseData) => ({
@@ -26,7 +27,10 @@ const memoAPI = {
     try {
       const config = {
         method: "GET",
-        url: "/rest/v1/todo",
+        url: "/rest/v1/todos",
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.token}`,
+        },
         params: {
           select: "*",
           order: "created_at.desc",
@@ -58,7 +62,10 @@ const memoAPI = {
 
       const config = {
         method: "POST",
-        url: "/rest/v1/todo",
+        url: "/rest/v1/todos",
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.token}`,
+        },
         data: supabaseData,
       };
 
@@ -81,7 +88,10 @@ const memoAPI = {
     try {
       const config = {
         method: "DELETE",
-        url: `/rest/v1/todo?id=eq.${id}`,
+        url: `/rest/v1/todos?id=eq.${id}`,
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.token}`,
+        },
       };
       await axiosInstance(config);
 
@@ -102,7 +112,10 @@ const memoAPI = {
     try {
       const config = {
         method: "PATCH",
-        url: `/rest/v1/todo?id=eq.${id}`,
+        url: `/rest/v1/todos?id=eq.${id}`,
+        headers: {
+          Authorization: `Bearer ${store.getState().auth.token}`,
+        },
         data: {
           is_completed: isCompleted,
         },
